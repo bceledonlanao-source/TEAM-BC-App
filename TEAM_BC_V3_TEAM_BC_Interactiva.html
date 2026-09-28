@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090b0e">
+<title>TEAM BC V2 — Gestión de clientes</title>
+<style>
+:root{--bg:#090b0e;--panel:#11151a;--panel2:#171c22;--line:#292f38;--text:#f5f6f8;--muted:#9ca5af;--red:#ef233c;--red2:#c9182b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit}input,select,textarea{font-size:16px}button{touch-action:manipulation}.app{max-width:760px;margin:auto;min-height:100vh;padding:18px 16px 32px}
+header{display:flex;justify-content:space-between;align-items:center;padding:6px 0 18px}.logo{font-size:27px;font-weight:950;font-style:italic}.logo span{color:var(--red)}.sub{font-size:9px;letter-spacing:3px;color:var(--muted)}
+.screen{display:none}.screen.active{display:block}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px}
+h1,h2,h3,p{margin-top:0}.muted,.label{color:var(--muted)}.label{font-size:12px}.btn{border:0;border-radius:12px;padding:12px 15px;min-height:44px;font-weight:800}.primary{background:var(--red);color:white}.ghost{background:var(--panel2);color:white;border:1px solid var(--line)}
+.grid{display:grid;gap:10px}.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}
+input,select{width:100%;margin-top:5px;background:#0b0e12;color:white;border:1px solid #303740;border-radius:10px;padding:11px}.field{font-size:13px}
+.search{margin:12px 0}.client{display:flex;align-items:center;gap:12px;text-align:left;width:100%;cursor:pointer}.avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#263d4c;color:#45c5fa;font-weight:900}.grow{flex:1}.arrow{font-size:22px;color:var(--red)}
+.empty{text-align:center;padding:34px 12px}.metric{font-size:26px;font-weight:900}.red{color:var(--red)}
+.nav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;border-top:1px solid var(--line);margin-top:22px;padding-top:12px}.nav button{background:transparent;border:0;color:var(--muted);padding:10px;border-radius:10px}.nav button.active{background:var(--panel2);color:#fff}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#181e25;border:1px solid #3b444e;border-radius:12px;padding:12px 16px;display:none;z-index:10;white-space:nowrap}
+@media(max-width:520px){.g3{grid-template-columns:1fr}.app{padding:14px 12px 28px}}
+</style>
+</head>
+<body>
+<div class="app">
+<div id="browserNotice" class="card" style="margin-bottom:12px;background:#171c22;border-color:#ef233c;line-height:1.45"><b>TEAM BC está listo para usarse</b><br><span class="muted">Si este archivo se abrió dentro del visor de ChatGPT y los botones no responden, ábrelo en Safari/Chrome. Allí podrás escribir, guardar clientes y conservar los datos en el dispositivo.</span></div>
+<header>
+ <div><div class="logo">TEAM <span>BC</span></div><div class="sub">PERSONAL TRAINER</div></div>
+ <button class="btn ghost" onclick="show('clients')">Clientes</button>
+</header>
+
+<section id="home" class="screen active">
+ <div class="label">PANEL DEL ENTRENADOR</div><h1 style="margin:5px 0 15px">Gestión de clientes</h1>
+ <div class="grid g2">
+  <div class="card"><div class="label">Clientes</div><div id="count" class="metric">0</div></div>
+  <div class="card"><div class="label">Valoraciones</div><div class="metric red">—</div></div>
+ </div>
+ <button class="btn primary" style="width:100%;margin-top:12px" onclick="openNew()">+ Crear nuevo cliente</button>
+ <button class="btn ghost" style="width:100%;margin-top:10px" onclick="show('clients')">Ver mis clientes</button>
+</section>
+
+<section id="clients" class="screen">
+ <div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><div class="label">GESTIÓN</div><h2 style="margin:4px 0">Mis clientes</h2></div><button class="btn primary" onclick="openNew()">+ Nuevo</button></div>
+ <input id="search" class="search" placeholder="Buscar por nombre..." oninput="renderClients()">
+ <div id="clientList"></div>
+</section>
+
+<section id="form" class="screen">
+ <div style="display:flex;justify-content:space-between;align-items:center"><div><div class="label">CLIENTE</div><h2 id="formTitle" style="margin:4px 0">Nuevo cliente</h2></div><button class="btn ghost" onclick="show('clients')">←</button></div>
+ <form id="clientForm" class="card" style="margin-top:12px" onsubmit="saveClient(event)">
+  <div class="grid g2">
+   <label class="field">Nombre completo<input id="name" required placeholder="Ej. Juan Pérez"></label>
+   <label class="field">Edad<input id="age" required type="number" min="16" max="100" placeholder="27"></label>
+   <label class="field">Sexo<select id="sex"><option value="Masculino">Masculino</option><option value="Femenino">Femenino</option></select></label>
+   <label class="field">Teléfono<input id="phone" inputmode="tel" placeholder="+57 ..."></label>
+   <label class="field">Peso inicial (kg)<input id="weight" type="number" step=".1" min="20" max="300" placeholder="80"></label>
+   <label class="field">Altura (cm)<input id="height" type="number" step=".1" min="100" max="230" placeholder="175"></label>
+  </div>
+  <label class="field" style="display:block;margin-top:12px">Objetivo inicial
+   <select id="goal"><option value="Sin definir">Sin definir</option><option value="Déficit">Déficit</option><option value="Mantenimiento">Mantenimiento</option><option value="Ganancia">Ganancia</option></select>
+  </label>
+  <label class="field" style="display:block;margin-top:12px">Notas<textarea id="notes" rows="4" style="width:100%;margin-top:5px;background:#0b0e12;color:white;border:1px solid #303740;border-radius:10px;padding:11px"></textarea></label>
+  <button class="btn primary" style="width:100%;margin-top:14px" type="submit">Guardar cliente</button>
+ </form>
+</section>
+
+<section id="profile" class="screen">
+ <button class="btn ghost" onclick="show('clients')">← Mis clientes</button>
+ <div id="profileBox" style="margin-top:12px"></div>
+</section>
+
+<section id="assessment" class="screen">
+ <button class="btn ghost" onclick="show('profile')">← Cliente</button>
+ <div id="assessmentBox" class="card" style="margin-top:12px"></div>
+</section>
+
+<nav class="nav">
+ <button onclick="show('home')">⌂<br><span class="label">Inicio</span></button>
+ <button onclick="show('clients')">♙<br><span class="label">Clientes</span></button>
+ <button onclick="openNew()">＋<br><span class="label">Nuevo</span></button>
+</nav>
+</div>
+<div id="toast" class="toast"></div><div class="label" style="text-align:center;margin-top:18px">TEAM BC · Gestión de clientes · Datos guardados localmente en este navegador</div>
+
+<script>
+let clients=[];
+try{clients=JSON.parse(localStorage.getItem('teamBC_clients')||'[]')||[]}catch(e){clients=[]}
+let currentId=null,editingId=null;
+const $=id=>document.getElementById(id);
+function persist(){
+  try{localStorage.setItem('teamBC_clients',JSON.stringify(clients))}
+  catch(e){toast('El navegador bloqueó el almacenamiento local')}
+  if($('count')) $('count').textContent=clients.length
+}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');if(id==='clients')renderClients();if(id==='home')persist();scrollTo(0,0)}
+function openNew(){editingId=null;$('formTitle').textContent='Nuevo cliente';$('clientForm').reset();show('form')}
+function saveClient(e){e.preventDefault();const data={id:editingId||(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(16).slice(2)),name:$('name').value.trim(),age:+$('age').value,sex:$('sex').value,phone:$('phone').value.trim(),weight:$('weight').value?+$('weight').value:null,height:$('height').value?+$('height').value:null,goal:$('goal').value,notes:$('notes').value.trim(),createdAt:editingId?(clients.find(x=>x.id===editingId)?.createdAt||new Date().toISOString()):new Date().toISOString(),assessments:editingId?(clients.find(x=>x.id===editingId)?.assessments||[]):[]};if(editingId){const i=clients.findIndex(x=>x.id===editingId);clients[i]=data}else clients.unshift(data);persist();toast(editingId?'Cliente actualizado':'Cliente creado');openProfile(data.id)}
+function renderClients(){const q=$('search').value.toLowerCase();const list=clients.filter(c=>c.name.toLowerCase().includes(q));$('clientList').innerHTML=list.length?list.map(c=>`<button class="card client" style="margin-bottom:8px" onclick="openProfile('${c.id}')"><div class="avatar">${initials(c.name)}</div><div class="grow"><b>${esc(c.name)}</b><div class="label">${c.age} años · ${esc(c.goal)}</div>${c.weight?`<div class="label">${c.weight} kg${c.assessments?.length?' · '+c.assessments.length+' valoración(es)':''}</div>`:''}</div><div class="arrow">›</div></button>`).join(''):`<div class="card empty"><div style="font-size:35px">♙</div><h3>Aún no tienes clientes</h3><p class="muted">Crea el primero para empezar a construir TEAM BC.</p><button class="btn primary" onclick="openNew()">+ Crear cliente</button></div>`}
+function openProfile(id){currentId=id;const c=clients.find(x=>x.id===id);if(!c)return;$('profileBox').innerHTML=`<div class="card" style="text-align:center"><div class="avatar" style="width:100px;height:100px;margin:auto;font-size:32px">${initials(c.name)}</div><h2 style="margin:14px 0 3px">${esc(c.name)}</h2><div class="muted">${c.age} años · ${c.sex}</div></div><div class="grid g2" style="margin-top:10px"><div class="card"><div class="label">Peso</div><div class="metric">${c.weight??'—'} ${c.weight?'kg':''}</div></div><div class="card"><div class="label">Altura</div><div class="metric">${c.height??'—'} ${c.height?'cm':''}</div></div><div class="card"><div class="label">Objetivo</div><div class="metric" style="font-size:20px">${esc(c.goal)}</div></div><div class="card"><div class="label">Valoraciones</div><div class="metric">${c.assessments?.length||0}</div></div></div><div class="grid g2" style="margin-top:10px"><button class="btn primary" onclick="newAssessment()">+ Valoración</button><button class="btn ghost" onclick="editClient()">Editar</button></div><div class="card" style="margin-top:10px"><div class="label">Notas</div><p style="margin:7px 0 0">${esc(c.notes||'Sin notas')}</p></div><button class="btn ghost" style="width:100%;margin-top:10px" onclick="deleteClient()">Eliminar cliente</button>`;show('profile')}
+function editClient(){const c=clients.find(x=>x.id===currentId);editingId=c.id;$('formTitle').textContent='Editar cliente';['name','age','phone','weight','height','notes'].forEach(k=>$(k).value=c[k]??'');$('sex').value=c.sex;$('goal').value=c.goal;show('form')}
+function deleteClient(){if(!confirm('¿Eliminar este cliente de este dispositivo?'))return;clients=clients.filter(x=>x.id!==currentId);persist();toast('Cliente eliminado');show('clients')}
+function newAssessment(){const c=clients.find(x=>x.id===currentId);$('assessmentBox').innerHTML=`<div class="label">VALORACIÓN DE ${esc(c.name).toUpperCase()}</div><h2 style="margin:5px 0 14px">Durnin / Womersley</h2><div class="grid g2"><label class="field">Bíceps (mm)<input id="a_biceps" type="number" step=".1" min=".1"></label><label class="field">Tríceps (mm)<input id="a_triceps" type="number" step=".1" min=".1"></label><label class="field">Subescapular (mm)<input id="a_subscap" type="number" step=".1" min=".1"></label><label class="field">Suprailiaco (mm)<input id="a_supra" type="number" step=".1" min=".1"></label></div><div class="grid g2" style="margin-top:10px"><label class="field">Peso (kg)<input id="a_weight" type="number" step=".1" value="${c.weight??''}"></label><label class="field">Fecha<input id="a_date" type="date" value="${new Date().toISOString().slice(0,10)}"></label></div><button class="btn primary" style="width:100%;margin-top:14px" onclick="saveAssessment()">Calcular y guardar valoración</button><div id="assessmentResult" style="margin-top:12px"></div>`;show('assessment')}
+function saveAssessment(){const c=clients.find(x=>x.id===currentId);const vals=['a_biceps','a_triceps','a_subscap','a_supra'].map(id=>+$(id).value),w=+$('a_weight').value;if(vals.some(v=>!v||v<=0)||!w){toast('Completa los 4 pliegues y el peso');return}const sum=vals.reduce((a,b)=>a+b,0),age=c.age,sex=c.sex;let A,B;if(sex==='Masculino'){if(age<20){A=1.1620;B=.0630}else if(age<30){A=1.1631;B=.0632}else if(age<40){A=1.1422;B=.0544}else if(age<50){A=1.1620;B=.0700}else{A=1.1715;B=.0779}}else{if(age<20){A=1.1549;B=.0678}else if(age<30){A=1.1599;B=.0717}else if(age<40){A=1.1423;B=.0632}else if(age<50){A=1.1333;B=.0612}else{A=1.1339;B=.0645}}const density=A-B*Math.log10(sum),fat=(495/density)-450,fatMass=w*fat/100,lean=w-fatMass,bmi=c.height?w/Math.pow(c.height/100,2):null;const rec={date:$('a_date').value,weight:w,biceps:vals[0],triceps:vals[1],subscap:vals[2],supra:vals[3],sum4:sum,density,fat,fatMass,lean,bmi};c.assessments=c.assessments||[];c.assessments.push(rec);c.weight=w;persist();$('assessmentResult').innerHTML=`<div class="card"><div class="label">RESULTADO GUARDADO</div><div class="grid g2" style="margin-top:10px"><div><div class="metric red">${fat.toFixed(1)}%</div><div class="label">Grasa corporal</div></div><div><div class="metric">${lean.toFixed(1)} kg</div><div class="label">Masa magra</div></div><div><div class="metric">${fatMass.toFixed(1)} kg</div><div class="label">Masa grasa</div></div><div><div class="metric">${bmi?bmi.toFixed(1):'—'}</div><div class="label">IMC</div></div></div><p class="label" style="margin-top:12px">Σ4 = ${sum.toFixed(1)} mm · densidad = ${density.toFixed(4)}</p><button class="btn primary" onclick="openProfile('${c.id}')">Ver perfil actualizado</button></div>`;toast('Valoración guardada en el historial')}
+function initials(n){return n.split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function toast(msg){$('toast').textContent=msg;$('toast').style.display='block';clearTimeout(window.tt);window.tt=setTimeout(()=>$('toast').style.display='none',2200)}
+persist();renderClients();
+</script>
+</body>
+</html>
